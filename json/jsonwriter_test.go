@@ -18,8 +18,6 @@ var trafficDecider = jsonwriter.NewColourDecider(
 	jsonwriter.JSONColor{Key: "level", Value: "error", Color: color.RGB(255, 0, 0)},
 )
 
-
-
 func TestJSONTrafficSimple(t *testing.T) {
 	//Given color is to be done
 	color.NoColor = false

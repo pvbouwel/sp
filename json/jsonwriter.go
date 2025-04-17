@@ -11,8 +11,7 @@ import (
 	"github.com/fatih/color"
 )
 
-
-type enclosedWriter struct{
+type enclosedWriter struct {
 	//Underlying writer to which everything ends up
 	wrapped io.Writer
 
@@ -27,13 +26,12 @@ type enclosedWriter struct{
 
 	//writer that is called with slices that are possible json dicts
 	embracedWriter io.Writer
-
 }
 
 type colourDecider map[string]map[any]*color.Color
 
 func NewColourDecider(c ...JSONColor) colourDecider {
-	var d colourDecider = colourDecider{}
+	var d = colourDecider{}
 	for _, ci := range c {
 		colourMap, ok := d[ci.Key]
 		if !ok {
@@ -47,14 +45,14 @@ func NewColourDecider(c ...JSONColor) colourDecider {
 	return d
 }
 
-func (d* colourDecider) decide(m map[string]any) *color.Color {
+func (d *colourDecider) decide(m map[string]any) *color.Color {
 	for key, value := range m {
 		mapToColour, ok := (*d)[key]
 		if ok {
 			c, ok := mapToColour[value]
 			if ok {
 				return c
-			} 
+			}
 
 		}
 	}
@@ -83,24 +81,24 @@ func (j *possibleJSONWriter) Write(p []byte) (n int, err error) {
 	c.SetWriter(j.wrapped)
 	n, err = j.wrapped.Write(p)
 	c.UnsetWriter(j.wrapped)
-	
+
 	return n, err
 }
 
 type JSONColor struct {
-	Key string
+	Key   string
 	Value any
 	Color *color.Color
 }
 
-func NewJSONWriter(w io.Writer, c colourDecider) io.Writer{
+func NewJSONWriter(w io.Writer, c colourDecider) io.Writer {
 	return &enclosedWriter{
-		wrapped: w,
-		braceBytes: []byte{byte('{'), byte('}')},
+		wrapped:     w,
+		braceBytes:  []byte{byte('{'), byte('}')},
 		literalByte: byte('"'),
-		escapeByte: byte('\\'),
+		escapeByte:  byte('\\'),
 		embracedWriter: &possibleJSONWriter{
-			wrapped: w,
+			wrapped:       w,
 			colourDecider: &c,
 		},
 	}
@@ -112,7 +110,7 @@ func (j *enclosedWriter) Write(p []byte) (n int, err error) {
 	curlyBraceDepth := 0
 	var inLiteral bool
 
-	for i := 0 ; i < len(p); i++ {
+	for i := 0; i < len(p); i++ {
 		switch p[i] {
 		case j.braceBytes[0]:
 			if inLiteral {
@@ -120,7 +118,7 @@ func (j *enclosedWriter) Write(p []byte) (n int, err error) {
 			}
 			if curlyBraceDepth == 0 && i != 0 {
 				//First curly brace what comes before must be written unprocessed
-				ni , err := j.wrapped.Write(p[n:i])
+				ni, err := j.wrapped.Write(p[n:i])
 				n += ni
 				if err != nil {
 					return n, err
@@ -136,7 +134,7 @@ func (j *enclosedWriter) Write(p []byte) (n int, err error) {
 			}
 			curlyBraceDepth -= 1
 			if curlyBraceDepth == 0 {
-				ni, err := j.embracedWriter.Write(p[idxOpeningBrace:i+1])
+				ni, err := j.embracedWriter.Write(p[idxOpeningBrace : i+1])
 				n += ni
 				if err != nil {
 					return n, err

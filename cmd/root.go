@@ -13,10 +13,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
-
 var appName string
 var appArgs []string
+
 const appSeparator string = "--"
+
 var stdoutWriter io.Writer
 var stderrWriter io.Writer
 
@@ -31,9 +32,9 @@ func proccessAppArguments() {
 			fmt.Fprintf(os.Stderr, "Invalid invocation after %san application is expected", appSeparator)
 			os.Exit(1)
 		}
-		appName = os.Args[separatorIdx + 1]
-		if len(os.Args) > separatorIdx + 1{
-			appArgs = os.Args[separatorIdx + 2:]
+		appName = os.Args[separatorIdx+1]
+		if len(os.Args) > separatorIdx+1 {
+			appArgs = os.Args[separatorIdx+2:]
 		}
 		os.Args = os.Args[0:separatorIdx]
 	} else {
@@ -84,5 +85,3 @@ func Execute() {
 }
 
 func init() {}
-
-

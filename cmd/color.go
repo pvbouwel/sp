@@ -21,10 +21,10 @@ var colorCmd = &cobra.Command{
 	Use:   "color",
 	Short: "Add color to a stream",
 	Long: `Add color to a stream.
-	
+
 	Example 1 : rainbow colors with widths between 2 and 10
 	sp color --color-type rotating --rotating-type random --stride-length 2-10
-	
+
 	Example 2 : Have json color-coded based on key named level
 	sp color --force --color-type JSON --json-key level --colors info.0.255.0,warning.255.128.0,error.255.0.0
 	`,
@@ -36,25 +36,25 @@ var colorCmd = &cobra.Command{
 		}
 		stdoutWriter, err = getWriter(cmd, stdout)
 		if err != nil {
-			os.Stderr.Write([]byte(fmt.Sprintf("Encountered error: %s", err)))
+			fmt.Fprintf(os.Stderr, "Encountered error: %s", err)
 		}
 		stderrWriter, err = getWriter(cmd, stderr)
 		if err != nil {
-			os.Stderr.Write([]byte(fmt.Sprintf("Encountered error: %s", err)))
+			fmt.Fprintf(os.Stderr, "Encountered error: %s", err)
 		}
 	},
 }
 
-var colourTable map [string]*color.Color = map [string]*color.Color{
-	"red": color.New(color.FgRed),
+var colourTable map[string]*color.Color = map[string]*color.Color{
+	"red":   color.New(color.FgRed),
 	"green": color.New(color.FgGreen),
 	"white": color.New(color.FgWhite),
 }
 
-func availableColors() ([]string){
-	var availableColors []string = make([]string, len(colourTable))
-	var i int = 0
-	for c := range(colourTable) {
+func availableColors() []string {
+	var availableColors = make([]string, len(colourTable))
+	var i = 0
+	for c := range colourTable {
 		availableColors[i] = c
 		i += 1
 	}
@@ -75,7 +75,7 @@ func getWriter(cmd *cobra.Command, outputType outputType) (io.Writer, error) {
 	case fColorTypeSingle:
 		//Logic to get writer for single color
 		textColor, err := cmd.Flags().GetString(getFlag(fTextColor))
-		if err !=nil {
+		if err != nil {
 			return nil, err
 		}
 		fgColor, err := getColor(textColor)
@@ -85,11 +85,11 @@ func getWriter(cmd *cobra.Command, outputType outputType) (io.Writer, error) {
 		return c.NewDefaultColor(baseWriter, *fgColor), nil
 	case fColorTypeRotating:
 		colors, err := cmd.Flags().GetString(getFlag(fColors))
-		if err !=nil {
+		if err != nil {
 			return nil, err
 		}
 		strings.Split(colors, ",")
-		var rotColorStrings []string = strings.Split(colors, ",")
+		var rotColorStrings = strings.Split(colors, ",")
 		rotColors, err := RGBStringsToColors(rotColorStrings)
 		if err != nil {
 			return nil, err
@@ -103,7 +103,7 @@ func getWriter(cmd *cobra.Command, outputType outputType) (io.Writer, error) {
 			return nil, err
 		}
 		var strideLen func() int
-		switch rt{
+		switch rt {
 		case fRotatingFixed:
 			i64, err := strconv.ParseInt(lengthStr, 0, 32)
 			if err != nil {
@@ -128,35 +128,34 @@ func getWriter(cmd *cobra.Command, outputType outputType) (io.Writer, error) {
 		return c.NewRotatingColor(baseWriter, rotColors, strideLen), nil
 	case fColorTypeJSON:
 		colors, err := cmd.Flags().GetString(getFlag(fColors))
-		if err !=nil {
+		if err != nil {
 			return nil, err
 		}
 		jsonKey, err := cmd.Flags().GetString(getFlag(fJSONKey))
 		if err != nil {
 			return nil, err
 		}
-		var colorStrings []string = strings.Split(colors, ",")
-		var jColors []jsonwriter.JSONColor = make([]jsonwriter.JSONColor, len(colorStrings))
+		var colorStrings = strings.Split(colors, ",")
+		var jColors = make([]jsonwriter.JSONColor, len(colorStrings))
 		for i, colorString := range colorStrings {
 			colorStringParts := strings.Split(colorString, ".")
 			colorDotParts := len(colorStringParts)
 			if colorDotParts < 4 {
 				return nil, fmt.Errorf("invalid JSON color string should be value.R.G.B got %s", colorString)
 			}
-			c, err := RGBValuesToColor(colorStringParts[colorDotParts-3:colorDotParts])
+			c, err := RGBValuesToColor(colorStringParts[colorDotParts-3 : colorDotParts])
 			if err != nil {
-				return nil, fmt.Errorf("invalid JSON color string RGB value got %v from %s", colorStringParts[colorDotParts-3:colorDotParts] ,colorString)	
+				return nil, fmt.Errorf("invalid JSON color string RGB value got %v from %s", colorStringParts[colorDotParts-3:colorDotParts], colorString)
 			}
-			value := strings.Join(colorStringParts[0:colorDotParts-3],".")
+			value := strings.Join(colorStringParts[0:colorDotParts-3], ".")
 			jColors[i] = jsonwriter.JSONColor{
-				Key: jsonKey,
+				Key:   jsonKey,
 				Value: value,
 				Color: c,
-
 			}
 		}
 		return jsonwriter.NewJSONWriter(baseWriter, jsonwriter.NewColourDecider(jColors...)), nil
-		
+
 	default:
 		return nil, fmt.Errorf("unknown color type: %s", colorType)
 	}
@@ -182,7 +181,7 @@ func RGBValuesToColor(rgbValues []string) (*color.Color, error) {
 }
 
 func RGBStringsToColors(icolors []string) ([]*color.Color, error) {
-	var result []*color.Color = make([]*color.Color, len(icolors))
+	var result = make([]*color.Color, len(icolors))
 	for i, clr := range icolors {
 		rgbValues := strings.Split(clr, ".")
 		c, err := RGBValuesToColor((rgbValues))
@@ -212,9 +211,6 @@ func getBaseWriter(outputType outputType) io.Writer {
 	panic(fmt.Sprintf("Invalid outputType %s", outputType))
 }
 
-
-
-
 const fColorType = "color-type"
 const fColorTypeSingle = "single"
 const fColorTypeRotating = "rotating"
@@ -227,7 +223,7 @@ const fRotatingRandom = "random"
 const fRotatingStrideLength = "stride-length"
 const fJSONKey = "json-key"
 
-var fRotatingTypes = []string {
+var fRotatingTypes = []string{
 	fRotatingFixed,
 	fRotatingRandom,
 }
@@ -236,45 +232,45 @@ var fColorTypes = []string{
 	fColorTypeSingle,
 	fColorTypeRotating,
 }
-const fTextColor = "text-color"
 
+const fTextColor = "text-color"
 
 var colorFlags []outErrStringFlag = []outErrStringFlag{
 	{
-		Name: fColorType,
+		Name:       fColorType,
 		OutDefault: fColorTypeSingle,
 		ErrDefault: fColorTypeSingle,
-		Usage: fmt.Sprintf("The color type to use for text [%s].", strings.Join(fColorTypes, ", ")),
+		Usage:      fmt.Sprintf("The color type to use for text [%s].", strings.Join(fColorTypes, ", ")),
 	},
 	{
-		Name: fTextColor,
+		Name:       fTextColor,
 		OutDefault: "white",
 		ErrDefault: "red",
-		Usage: fmt.Sprintf("The default color to use for text [%s].", strings.Join(availableColors(), ", ")),
+		Usage:      fmt.Sprintf("The default color to use for text [%s].", strings.Join(availableColors(), ", ")),
 	},
 	{
-		Name: fColors,
+		Name:       fColors,
 		OutDefault: fColorsRainbow,
 		ErrDefault: fColorsRainbow,
-		Usage: "The colors to use for color types with multiple colors. comma separated R.G.B values (0-255)",
+		Usage:      "The colors to use for color types with multiple colors. comma separated R.G.B values (0-255)",
 	},
 	{
-		Name: fRotatingType,
+		Name:       fRotatingType,
 		OutDefault: fRotatingFixed,
 		ErrDefault: fRotatingFixed,
-		Usage: fmt.Sprintf("The rotating type [%s].", strings.Join(fRotatingTypes, ", ")),
+		Usage:      fmt.Sprintf("The rotating type [%s].", strings.Join(fRotatingTypes, ", ")),
 	},
 	{
-		Name: fRotatingStrideLength,
+		Name:       fRotatingStrideLength,
 		OutDefault: "2",
 		ErrDefault: "2",
-		Usage: "The length used for strides of colors",
+		Usage:      "The length used for strides of colors",
 	},
 	{
-		Name: fJSONKey,
+		Name:       fJSONKey,
 		OutDefault: "level",
 		ErrDefault: "level",
-		Usage: "The key of the JSON field that decides the color (default: level)",
+		Usage:      "The key of the JSON field that decides the color (default: level)",
 	},
 }
 
@@ -286,7 +282,7 @@ func getErrFlagName(flagName string) string {
 	return fmt.Sprintf("err-%s", flagName)
 }
 
-func getFlagNameFunc(outputType outputType) func (string) string{
+func getFlagNameFunc(outputType outputType) func(string) string {
 	switch outputType {
 	case stdout:
 		return getOutFlagName

@@ -12,7 +12,6 @@ import (
 	c "github.com/pvbouwel/sp/color"
 )
 
-
 func TestRotatingColor(t *testing.T) {
 	//Given color is to be done
 	color.NoColor = false
@@ -42,7 +41,6 @@ func TestRotatingColor(t *testing.T) {
 		t.Errorf("\nExpected:%s\nGot     :%s", expectedLine, line)
 	}
 }
-
 
 func TestRotatingColor2writes(t *testing.T) {
 	//Given color is to be done

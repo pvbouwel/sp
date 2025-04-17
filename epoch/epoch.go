@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-func bytesToInt64(bytes [] byte) int64 {
+func bytesToInt64(bytes []byte) int64 {
 	i, err := strconv.ParseInt(string(bytes), 10, 64)
 	if err != nil {
 		fmt.Printf("Could not parse int64 %s due to %s", string(bytes), err)
@@ -19,15 +19,14 @@ func bytesToInt64(bytes [] byte) int64 {
 	return i
 }
 
-
-func replaceIfEpoch(bytes []byte) (string) {
+func replaceIfEpoch(bytes []byte) string {
 	r, _ := regexp.Compile(`\.`)
 	loc := r.FindIndex(bytes)
 	var t time.Time
 	var sec, nsec int64
 	var secEndIdx int
 	if loc == nil {
-	    // No dot
+		// No dot
 		nsec = 0
 		secEndIdx = len(bytes)
 	} else {
@@ -41,14 +40,13 @@ func replaceIfEpoch(bytes []byte) (string) {
 	return t.UTC().Format("2006-01-02T15:04:05Z")
 }
 
-
-func replaceEpochs(line []byte) []byte{
+func replaceEpochs(line []byte) []byte {
 	r, _ := regexp.Compile(`[0-9]{10}`)
 	loc := r.FindIndex(line)
 	if loc == nil {
 		return line
 	} else {
-		var rewrite []byte = make([]byte, 0)
+		var rewrite = make([]byte, 0)
 
 		rewrite = append(rewrite, line[0:loc[0]]...)
 		rewrite = append(rewrite, []byte(replaceIfEpoch(line[loc[0]:loc[1]]))...)

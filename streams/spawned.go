@@ -10,7 +10,7 @@ import (
 	"os/exec"
 )
 
-//A stream processing app
+// A stream processing app
 type spawnedApp struct {
 	stdOutWriter io.Writer
 	stdErrWriter io.Writer
@@ -19,15 +19,14 @@ type spawnedApp struct {
 	appArgs []string
 }
 
-func NewSpawnedApp(stdOutWriter io.Writer, StdErrWriter io.Writer, appName string, AppArgs []string) App{
+func NewSpawnedApp(stdOutWriter io.Writer, StdErrWriter io.Writer, appName string, AppArgs []string) App {
 	return &spawnedApp{
 		stdOutWriter: stdOutWriter,
 		stdErrWriter: StdErrWriter,
-		appName: appName,
-		appArgs: AppArgs,
+		appName:      appName,
+		appArgs:      AppArgs,
 	}
 }
-
 
 func (a *spawnedApp) Run() int {
 	appPath, err := exec.LookPath(a.appName)
