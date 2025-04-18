@@ -5,6 +5,7 @@ package streams
 
 import (
 	"bufio"
+	"fmt"
 	"io"
 	"os"
 )
@@ -28,17 +29,26 @@ func (a *pipedApp) Run() int {
 		for scanner.Scan() {
 			_, err := a.stdOutWriter.Write(scanner.Bytes())
 			if err != nil {
-				os.Stderr.Write([]byte(err.Error()))
+				_, err := os.Stderr.Write([]byte(err.Error()))
+				if err != nil {
+					panic(fmt.Sprintf("Could not write to stderr: %s", err))
+				}
 				return 1
 			}
 			_, err = a.stdOutWriter.Write([]byte("\n"))
 			if err != nil {
-				os.Stderr.Write([]byte(err.Error()))
+				_, err = os.Stderr.Write([]byte(err.Error()))
+				if err != nil {
+					panic(fmt.Sprintf("Could not write to stderr: %s", err))
+				}
 				return 1
 			}
 		}
 		if err := scanner.Err(); err != nil {
-			os.Stderr.Write([]byte(err.Error()))
+			_, err = os.Stderr.Write([]byte(err.Error()))
+			if err != nil {
+				panic(fmt.Sprintf("Could not write to stderr: %s", err))
+			}
 			return 1
 		}
 
