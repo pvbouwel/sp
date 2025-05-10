@@ -12,10 +12,10 @@ import (
 	jsonwriter "github.com/pvbouwel/sp/json"
 )
 
-var trafficDecider = jsonwriter.NewColourDecider(
-	jsonwriter.JSONColor{Key: "level", Value: "info", Color: color.RGB(0, 255, 0)},
-	jsonwriter.JSONColor{Key: "level", Value: "warning", Color: color.RGB(255, 128, 0)},
-	jsonwriter.JSONColor{Key: "level", Value: "error", Color: color.RGB(255, 0, 0)},
+var trafficDecider = jsonwriter.NewMapBasedColourDecider(
+	jsonwriter.JSONColor{Key: "level", Value: "info", Color: []*color.Color{color.RGB(0, 255, 0), color.RGB(0, 205, 0)}},
+	jsonwriter.JSONColor{Key: "level", Value: "warning", Color: []*color.Color{color.RGB(255, 128, 0)}},
+	jsonwriter.JSONColor{Key: "level", Value: "error", Color: []*color.Color{color.RGB(255, 0, 0)}},
 )
 
 func TestJSONTrafficSimple(t *testing.T) {
@@ -48,6 +48,41 @@ func TestJSONTrafficSimple(t *testing.T) {
 		t.FailNow()
 	}
 	expectedLine = "\x1b[38;2;255;0;0m{\"level\":\"error\"}\x1b[0m"
+	if line != expectedLine {
+		t.Errorf("\nExpected:%s\nGot     :%s", expectedLine, line)
+	}
+}
+
+func TestJSONTrafficSimpleBanding(t *testing.T) {
+	//Given color is to be done
+	color.NoColor = false
+
+	//Given a buffer to write into
+	rb := new(bytes.Buffer)
+
+	//WHEN we create a writer with the decider
+	w := jsonwriter.NewJSONWriter(rb, trafficDecider)
+
+	_, err := w.Write([]byte("{\"level\": \"info\"}\n{\"level\": \"info\"}\n{\"level\": \"info\"}\n"))
+	if err != nil {
+		t.Errorf("Encountered error when writing msg: %s", err)
+	}
+
+	line, err := rb.ReadString(byte('\n'))
+	if err != nil {
+		t.Errorf("Encountered %s while reading buffer", err)
+		t.FailNow()
+	}
+	expectedLine := "\x1b[38;2;0;255;0m{\"level\": \"info\"}\x1b[0m\n"
+	if line != expectedLine {
+		t.Errorf("\nExpected:%s\nGot     :%s", expectedLine, line)
+	}
+	line, _ = rb.ReadString(byte('\n'))
+	expectedLineAlternate := "\x1b[38;2;0;205;0m{\"level\": \"info\"}\x1b[0m\n"
+	if line != expectedLineAlternate {
+		t.Errorf("\nExpected:%s\nGot     :%s", expectedLineAlternate, line)
+	}
+	line, _ = rb.ReadString(byte('\n'))
 	if line != expectedLine {
 		t.Errorf("\nExpected:%s\nGot     :%s", expectedLine, line)
 	}
@@ -112,10 +147,10 @@ func TestJSONTrafficFunkeyValues(t *testing.T) {
 	//Given a buffer to write into
 	rb := new(bytes.Buffer)
 
-	var trafficDeciderFunkyValues = jsonwriter.NewColourDecider(
-		jsonwriter.JSONColor{Key: "level", Value: "i.nfo", Color: color.RGB(0, 255, 0)},
-		jsonwriter.JSONColor{Key: "level", Value: "w.a.r.n.i.n.g", Color: color.RGB(255, 128, 0)},
-		jsonwriter.JSONColor{Key: "level", Value: "error.", Color: color.RGB(255, 0, 0)},
+	var trafficDeciderFunkyValues = jsonwriter.NewMapBasedColourDecider(
+		jsonwriter.JSONColor{Key: "level", Value: "i.nfo", Color: []*color.Color{color.RGB(0, 255, 0)}},
+		jsonwriter.JSONColor{Key: "level", Value: "w.a.r.n.i.n.g", Color: []*color.Color{color.RGB(255, 128, 0)}},
+		jsonwriter.JSONColor{Key: "level", Value: "error.", Color: []*color.Color{color.RGB(255, 0, 0)}},
 	)
 
 	//WHEN we create a writer with the decider

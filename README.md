@@ -13,9 +13,16 @@ The sp tool allows for configuration to fine tune behavior to your liking. As a 
 Some examples:
 
 ```
-alias sp-rainbow="sp color --color-type rotating --rotating-type random --stride-length 5-15"
-alias sp-json-traffic="sp color --color-type JSON --colors level.info --colors info.0.255.0,warning.255.128.0,error.255.0.0"
+# Rainbow colours
+alias sp-rainbow="sp color --color-type rotating --rotating-type random --stride-length 15-25"
+
+# Colour JSON depending on values of the field called levelname and have alternating colours if subsequent lines match
+sp-json-traffic='sp color --color-type JSON --json-key levelname --colors INFO.0.255.0,INFO.0.155.0,WARNING.255.128.0,WARNING.155.128.0,ERROR.255.0.0,ERROR.155.0.0'
+
+# Allow colouring of stoud and stderr differently
 alias sp-stdouterr="sp color"
+
+# Replace epoch occurrences with human readable time
 alias sp-epoch="sp epoch"
 ```
 
