@@ -27,6 +27,8 @@ var colorCmd = &cobra.Command{
 
 	Example 2 : Have json color-coded based on key named level
 	sp color --force --color-type JSON --json-key level --colors info.0.255.0,warning.255.128.0,error.255.0.0
+
+	For JSON color-type you can have colour banding if you specify a value multiple times.
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
 		var err error
@@ -151,10 +153,10 @@ func getWriter(cmd *cobra.Command, outputType outputType) (io.Writer, error) {
 			jColors[i] = jsonwriter.JSONColor{
 				Key:   jsonKey,
 				Value: value,
-				Color: c,
+				Color: []*color.Color{c},
 			}
 		}
-		return jsonwriter.NewJSONWriter(baseWriter, jsonwriter.NewColourDecider(jColors...)), nil
+		return jsonwriter.NewJSONWriter(baseWriter, jsonwriter.NewMapBasedColourDecider(jColors...)), nil
 
 	default:
 		return nil, fmt.Errorf("unknown color type: %s", colorType)

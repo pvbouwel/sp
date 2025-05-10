@@ -28,30 +28,41 @@ type enclosedWriter struct {
 	embracedWriter io.Writer
 }
 
-type colourDecider map[string]map[any]*color.Color
+type colourDecider interface {
+	decide(m map[string]any) *color.Color
+}
 
-func NewColourDecider(c ...JSONColor) colourDecider {
-	var d = colourDecider{}
+type mapBasedColourDecider struct {
+	m map[string]map[any][]*color.Color
+
+	i int
+}
+
+func NewMapBasedColourDecider(c ...JSONColor) mapBasedColourDecider {
+	var d = mapBasedColourDecider{}
+	d.m = map[string]map[any][]*color.Color{}
 	for _, ci := range c {
-		colourMap, ok := d[ci.Key]
+		colourMap, ok := d.m[ci.Key]
 		if !ok {
-			cm := map[any]*color.Color{}
+			cm := map[any][]*color.Color{}
 			cm[ci.Value] = ci.Color
-			d[ci.Key] = cm
+			d.m[ci.Key] = cm
 		} else {
-			colourMap[ci.Value] = ci.Color
+			colourMap[ci.Value] = append(colourMap[ci.Value], ci.Color...)
 		}
 	}
 	return d
 }
 
-func (d *colourDecider) decide(m map[string]any) *color.Color {
+func (d *mapBasedColourDecider) decide(m map[string]any) *color.Color {
 	for key, value := range m {
-		mapToColour, ok := (*d)[key]
+		mapToColour, ok := (d.m)[key]
 		if ok {
 			c, ok := mapToColour[value]
 			if ok {
-				return c
+				chosenColor := c[d.i%len(c)]
+				d.i = (d.i + 1) % 100000
+				return chosenColor
 			}
 
 		}
@@ -64,7 +75,7 @@ type possibleJSONWriter struct {
 
 	//A mapping to decide the colour. it maps key names to a mapping to decide on colour
 	//if there are multiple matches there is no guarantee on a winner.
-	colourDecider *colourDecider
+	colourDecider colourDecider
 }
 
 func (j *possibleJSONWriter) Write(p []byte) (n int, err error) {
@@ -88,10 +99,10 @@ func (j *possibleJSONWriter) Write(p []byte) (n int, err error) {
 type JSONColor struct {
 	Key   string
 	Value any
-	Color *color.Color
+	Color []*color.Color
 }
 
-func NewJSONWriter(w io.Writer, c colourDecider) io.Writer {
+func NewJSONWriter(w io.Writer, c mapBasedColourDecider) io.Writer {
 	return &enclosedWriter{
 		wrapped:     w,
 		braceBytes:  []byte{byte('{'), byte('}')},
