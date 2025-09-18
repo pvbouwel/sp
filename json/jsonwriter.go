@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/fatih/color"
 )
@@ -28,7 +29,7 @@ type enclosedWriter struct {
 	embracedWriter io.Writer
 }
 
-type colourDecider interface {
+type ColourDecider interface {
 	decide(m map[string]any) *color.Color
 }
 
@@ -36,19 +37,31 @@ type mapBasedColourDecider struct {
 	m map[string]map[any][]*color.Color
 
 	i int
+	//Do not consider cases when matching
+	ignoreCase bool
 }
 
-func NewMapBasedColourDecider(c ...JSONColor) mapBasedColourDecider {
+func NewMapBasedColourDecider(ignoreCase bool, c ...JSONColor) mapBasedColourDecider {
 	var d = mapBasedColourDecider{}
+	d.ignoreCase = ignoreCase
+
 	d.m = map[string]map[any][]*color.Color{}
 	for _, ci := range c {
 		colourMap, ok := d.m[ci.Key]
+		s, isStringValue := ci.Value.(string)
+		var val any
+		if d.ignoreCase && isStringValue {
+			val = strings.ToLower(s)
+		} else {
+			val = ci.Value
+		}
 		if !ok {
 			cm := map[any][]*color.Color{}
-			cm[ci.Value] = ci.Color
+
+			cm[val] = ci.Color
 			d.m[ci.Key] = cm
 		} else {
-			colourMap[ci.Value] = append(colourMap[ci.Value], ci.Color...)
+			colourMap[val] = append(colourMap[val], ci.Color...)
 		}
 	}
 	return d
@@ -58,13 +71,19 @@ func (d *mapBasedColourDecider) decide(m map[string]any) *color.Color {
 	for key, value := range m {
 		mapToColour, ok := (d.m)[key]
 		if ok {
-			c, ok := mapToColour[value]
-			if ok {
-				chosenColor := c[d.i%len(c)]
+			s, isStringValue := value.(string)
+			var colours []*color.Color
+			var colourOk bool
+			if isStringValue && d.ignoreCase {
+				colours, colourOk = mapToColour[strings.ToLower(s)]
+			} else {
+				colours, colourOk = mapToColour[value]
+			}
+			if colourOk {
+				chosenColor := colours[d.i%len(colours)]
 				d.i = (d.i + 1) % 100000
 				return chosenColor
 			}
-
 		}
 	}
 	return nil
@@ -75,7 +94,7 @@ type possibleJSONWriter struct {
 
 	//A mapping to decide the colour. it maps key names to a mapping to decide on colour
 	//if there are multiple matches there is no guarantee on a winner.
-	colourDecider colourDecider
+	colourDecider ColourDecider
 }
 
 func (j *possibleJSONWriter) Write(p []byte) (n int, err error) {
@@ -102,7 +121,7 @@ type JSONColor struct {
 	Color []*color.Color
 }
 
-func NewJSONWriter(w io.Writer, c mapBasedColourDecider) io.Writer {
+func NewJSONWriter(w io.Writer, c ColourDecider) io.Writer {
 	return &enclosedWriter{
 		wrapped:     w,
 		braceBytes:  []byte{byte('{'), byte('}')},
@@ -110,7 +129,7 @@ func NewJSONWriter(w io.Writer, c mapBasedColourDecider) io.Writer {
 		escapeByte:  byte('\\'),
 		embracedWriter: &possibleJSONWriter{
 			wrapped:       w,
-			colourDecider: &c,
+			colourDecider: c,
 		},
 	}
 }
