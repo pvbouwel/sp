@@ -156,7 +156,12 @@ func getWriter(cmd *cobra.Command, outputType outputType) (io.Writer, error) {
 				Color: []*color.Color{c},
 			}
 		}
-		return jsonwriter.NewJSONWriter(baseWriter, jsonwriter.NewMapBasedColourDecider(jColors...)), nil
+		ignoreCase, err := cmd.Flags().GetBool(fIgnoreCase)
+		if err != nil {
+			return nil, err
+		}
+		var colourDecider = jsonwriter.NewMapBasedColourDecider(ignoreCase, jColors...)
+		return jsonwriter.NewJSONWriter(baseWriter, &colourDecider), nil
 
 	default:
 		return nil, fmt.Errorf("unknown color type: %s", colorType)
@@ -224,6 +229,7 @@ const fRotatingFixed = "fixed"
 const fRotatingRandom = "random"
 const fRotatingStrideLength = "stride-length"
 const fJSONKey = "json-key"
+const fIgnoreCase = "ignore-case"
 
 var fRotatingTypes = []string{
 	fRotatingFixed,
@@ -302,7 +308,7 @@ func init() {
 		colorCmd.Flags().String(getErrFlagName(colorFlag.Name), colorFlag.ErrDefault, fmt.Sprintf("%s for stderr", colorFlag.Usage))
 
 	}
-
+	colorCmd.Flags().Bool(fIgnoreCase, false, "Whether the casing of values should be ignored during matching")
 	colorCmd.Flags().Bool("force", false, "Whether to force coloring regardless of type of outputstream.")
 
 }
