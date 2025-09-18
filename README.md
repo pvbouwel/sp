@@ -6,6 +6,24 @@
 
 ### Install the sp binary
 
+For a unix-type OS the following string of commands will:
+ - download the archive of the specified version for your os and machine architecture (to your working directory)
+ - extract it inside your home directory
+ - create a symbolic link to $HOME/bin
+ - cleanup the downloaded archive
+
+So if you have `$HOME/bin` on your `PATH` environment variable the `sp` command is resolvable.
+
+```bash
+VERSION="0.1.0" && \
+  TARGET="sp_$(uname)_$(uname -m)" && \
+  TARBAL="${TARGET}.tar.gz" && \
+  curl -L "https://github.com/pvbouwel/sp/releases/download/v${VERSION}/${TARBAL}" -o "$TARBAL" && \
+  mkdir -p "$HOME/${TARGET}" && \
+  tar -C "$HOME/${TARGET}" -xzvf "$TARBAL" && \
+  ln -svf "${HOME}/${TARGET}/sp" "${HOME}/bin/sp" && rm "$TARBAL"
+```
+
 ### Install aliases
 
 The sp tool allows for configuration to fine tune behavior to your liking. As a result there are likely too many flags to be convenient to type every time. To overcome this you can install aliases in your rc file (e.g. `~/.zshrc` or `~/.bashrc` or another based on your shell)
