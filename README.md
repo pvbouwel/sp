@@ -1,6 +1,8 @@
 # sp
 
- Unix style stream processing utility
+Unix style stream processing utility.
+
+Your companion to make reading information in a shell more enjoyable.
 
 ## Installation
 
@@ -26,23 +28,26 @@ VERSION="0.1.0" && \
 
 ### Install aliases
 
-The sp tool allows for configuration to fine tune behavior to your liking. As a result there are likely too many flags to be convenient to type every time. To overcome this you can install aliases in your rc file (e.g. `~/.zshrc` or `~/.bashrc` or another based on your shell)
+The sp tool allows for configuration to fine tune behavior to your liking. As a result there are likely too many flags to be convenient to type every time. To overcome this you can install aliases in your rc file.
 
-Some examples:
-
+To show the example aliases run:
 ```bash
-# Rainbow colours
-alias sp-rainbow="sp color --color-type rotating --rotating-type random --stride-length 15-25"
-
-# Colour JSON depending on values of the field called levelname and have alternating colours if subsequent lines match
-alias sp-json-traffic='sp color --ignore-case --color-type JSON --json-key levelname --colors INFO.0.255.0,INFO.0.155.0,WARNING.255.128.0,WARNING.155.128.0,ERROR.255.0.0,ERROR.155.0.0'
-
-# Allow colouring of stoud and stderr differently
-alias sp-stdouterr="sp color"
-
-# Replace epoch occurrences with human readable time
-alias sp-epoch="sp epoch"
+sp aliases
 ```
+
+The recommended way to install them is to put them in a separate file:
+```bash
+sp aliases > "$HOME/.sp-aliases"
+```
+
+And a once of install of the source command in your rc file:
+```bash
+echo 'source "$HOME/.sp-aliases"' >> ${HOME}/.$(echo $SHELL| sed 's_.*[/]\([a-z]*\)_\1_')rc
+```
+
+Tip: the comments at the start of the output will show similar commands tailored for your environment which look a little less daunting.
+
+
 
 ## Usage
 
