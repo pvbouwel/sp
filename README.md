@@ -17,7 +17,7 @@ For a unix-type OS the following string of commands will:
 So if you have `$HOME/bin` on your `PATH` environment variable the `sp` command is resolvable.
 
 ```bash
-VERSION="0.1.0" && \
+VERSION="1.0.0" && \
   TARGET="sp_$(uname)_$(uname -m)" && \
   TARBAL="${TARGET}.tar.gz" && \
   curl -L "https://github.com/pvbouwel/sp/releases/download/v${VERSION}/${TARBAL}" -o "$TARBAL" && \
