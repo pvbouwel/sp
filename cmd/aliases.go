@@ -36,7 +36,7 @@ alias sp-rainbow="sp color --color-type rotating --rotating-type random --stride
 
 # Colour JSON depending on values of the field called levelname and have alternating colours if subsequent lines match
 alias sp-json-traffic-levelname='sp color --ignore-case --color-type JSON --json-key levelname --colors INFO.0.255.0,INFO.0.155.0,WARNING.255.128.0,WARNING.155.128.0,ERROR.255.0.0,ERROR.155.0.0'
-alias sp-json-traffic-level='sp color --ignore-case --color-type JSON --json-key levelname --colors INFO.0.255.0,INFO.0.155.0,WARNING.255.128.0,WARNING.155.128.0,ERROR.255.0.0,ERROR.155.0.0'
+alias sp-json-traffic-level='sp color --ignore-case --color-type JSON --json-key level --colors INFO.0.255.0,INFO.0.155.0,WARNING.255.128.0,WARNING.155.128.0,ERROR.255.0.0,ERROR.155.0.0'
 
 # Allow colouring of stoud and stderr differently
 alias sp-stdouterr="sp color"
