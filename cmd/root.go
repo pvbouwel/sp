@@ -17,6 +17,7 @@ var appName string
 var appArgs []string
 
 const appSeparator string = "--"
+const maxLineLengthArg string = "max-line-length"
 
 var stdoutWriter io.Writer
 var stderrWriter io.Writer
@@ -71,7 +72,12 @@ func Execute() {
 			fmt.Fprint(os.Stderr, "After sp initialization stdout writer was still nil")
 			os.Exit(1)
 		}
-		os.Exit(streams.NewPipedApp(stdoutWriter).Run())
+		maxLineSize, err := rootCmd.Flags().GetInt32(maxLineLengthArg)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Could not get %s due to %s", maxLineLengthArg, err.Error())
+			os.Exit(1)
+		}
+		os.Exit(streams.NewPipedApp(stdoutWriter, maxLineSize).Run())
 	} else {
 		if stderrWriter == nil {
 			stderrWriter = os.Stderr
@@ -84,4 +90,6 @@ func Execute() {
 	}
 }
 
-func init() {}
+func init() {
+	rootCmd.PersistentFlags().Int32(maxLineLengthArg, 1024*1024, "Specifies the maximum line lenght to be used")
+}
